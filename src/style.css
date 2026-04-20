@@ -11,6 +11,10 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  scroll-padding-bottom: 100px;
+}
+
 #app {
   min-height: 100dvh;
   max-width: 640px;
