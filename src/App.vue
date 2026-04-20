@@ -46,7 +46,7 @@ const tabs = [
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 safe-bottom">
+  <div class="min-h-[100dvh] pb-24 safe-bottom overflow-x-hidden">
     <!-- 顶部渐变头 -->
     <div class="keep-gradient px-5 pt-12 pb-8 text-white relative overflow-hidden">
       <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full"></div>

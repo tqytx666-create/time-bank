@@ -6,17 +6,20 @@ html, body {
   margin: 0;
   padding: 0;
   background: #f5f7fa;
-  min-height: 100vh;
+  min-height: 100dvh;
   overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: transparent;
 }
 
 #app {
-  min-height: 100vh;
+  min-height: 100dvh;
   max-width: 640px;
   margin: 0 auto;
   background: #f5f7fa;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Keep 风格渐变 */
