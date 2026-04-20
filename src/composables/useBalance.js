@@ -112,26 +112,65 @@ async function settleInterestIfNeeded() {
   lastInterestDate.value = today
 }
 
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} 超时(${ms}ms)，请检查网络`)), ms)
+    )
+  ])
+}
+
 export async function deposit({ exerciseType, exerciseMinutes, description }) {
   const ratio = exerciseType === 'badminton' ? 2 : 1
   const screen = Math.round(Number(exerciseMinutes) * ratio * 100) / 100
   if (!(screen > 0)) throw new Error('运动时长必须大于0')
   const newBal = Math.round((Number(balance.value) + screen) * 100) / 100
-  const { error: e1 } = await supabase.from('transactions').insert({
-    type: 'deposit',
-    exercise_type: exerciseType,
-    exercise_minutes: Number(exerciseMinutes),
-    screen_minutes: screen,
-    description: description || null
-  })
-  if (e1) throw e1
-  const { error: e2 } = await supabase
-    .from('balance')
-    .update({ current_balance: newBal })
-    .eq('id', 1)
-  if (e2) throw e2
+
+  let r1
+  try {
+    r1 = await withTimeout(
+      supabase.from('transactions').insert({
+        type: 'deposit',
+        exercise_type: exerciseType,
+        exercise_minutes: Number(exerciseMinutes),
+        screen_minutes: screen,
+        description: description || null
+      }),
+      10000,
+      '写入交易'
+    )
+  } catch (e) {
+    console.error('[deposit] insert transactions error:', e)
+    throw new Error('存入失败: ' + (e.message || e))
+  }
+  if (r1?.error) {
+    console.error('[deposit] supabase insert error:', r1.error)
+    throw new Error('存入失败: ' + (r1.error.message || JSON.stringify(r1.error)))
+  }
+
+  let r2
+  try {
+    r2 = await withTimeout(
+      supabase.from('balance').update({ current_balance: newBal }).eq('id', 1),
+      10000,
+      '更新余额'
+    )
+  } catch (e) {
+    console.error('[deposit] update balance error:', e)
+    throw new Error('余额更新失败: ' + (e.message || e))
+  }
+  if (r2?.error) {
+    console.error('[deposit] supabase update error:', r2.error)
+    throw new Error('余额更新失败: ' + (r2.error.message || JSON.stringify(r2.error)))
+  }
+
   balance.value = newBal
-  await loadTransactions()
+  try {
+    await withTimeout(loadTransactions(), 10000, '刷新列表')
+  } catch (e) {
+    console.warn('[deposit] loadTransactions failed (non-fatal):', e)
+  }
   return screen
 }
 
