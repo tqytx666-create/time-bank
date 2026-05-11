@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useBalance } from './composables/useBalance.js'
 import BalanceCard from './components/BalanceCard.vue'
-import TimerDisplay from './components/TimerDisplay.vue'
+import SpendForm from './components/SpendForm.vue'
 import DepositForm from './components/DepositForm.vue'
 import BonusForm from './components/BonusForm.vue'
 import TransactionList from './components/TransactionList.vue'
@@ -69,7 +69,7 @@ const tabs = [
       <!-- 首页 -->
       <div v-if="tab === 'home'" class="space-y-4">
         <BalanceCard :balance="balance" />
-        <TimerDisplay />
+        <SpendForm />
 
         <!-- 小科普 -->
         <div class="bg-white rounded-2xl p-4 keep-shadow">

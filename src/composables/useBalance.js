@@ -216,6 +216,27 @@ export async function withdraw({ seconds, startedAt }) {
   return minutes
 }
 
+export async function withdrawDirect({ minutes, description }) {
+  const mins = Math.round(Number(minutes))
+  if (mins <= 0) throw new Error('分钟数必须大于0')
+  if (mins > Math.floor(Number(balance.value))) throw new Error('余额不足')
+  const newBal = Math.round((Number(balance.value) - mins) * 100) / 100
+  const { error: e1 } = await supabase.from('transactions').insert({
+    type: 'withdraw',
+    screen_minutes: mins,
+    description: description || `直接扣除 ${mins} 分钟`
+  })
+  if (e1) throw e1
+  const { error: e2 } = await supabase
+    .from('balance')
+    .update({ current_balance: newBal })
+    .eq('id', 1)
+  if (e2) throw e2
+  balance.value = newBal
+  await loadTransactions()
+  return mins
+}
+
 export function useBalance() {
   return {
     balance,
@@ -228,6 +249,7 @@ export function useBalance() {
     loadAll,
     deposit,
     addBonus,
-    withdraw
+    withdraw,
+    withdrawDirect
   }
 }
